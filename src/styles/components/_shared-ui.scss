@@ -1,0 +1,344 @@
+@use '../abstracts' as *;
+
+.app-header,
+.preview-card,
+.field-card {
+  @include glass-panel;
+  border-radius: $radius-squircle;
+}
+
+.app-header {
+  @include center(row, rem(16));
+  justify-content: space-between;
+  width: 100%;
+  padding: rem(14) rem(16);
+
+  @include mq('md') {
+    padding: rem(16) rem(18);
+  }
+}
+
+.brand-block {
+  @include center(row, rem(12));
+  align-items: flex-start;
+}
+
+.brand-icon {
+  @include center;
+  width: rem(42);
+  height: rem(42);
+  border-radius: rem(14);
+  color: #050505;
+  background: linear-gradient(135deg, #ffffff 0%, #8bdcff 48%, #c4b5fd 100%);
+  box-shadow: $shadow-soft;
+}
+
+.brand-kicker {
+  color: $color-text-tertiary;
+  font-size: rem(11);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.brand-title {
+  @include apple-type(17, 650, 1.15, -0.03em);
+  color: $color-text-primary;
+}
+
+.auth-actions {
+  @include center(row, rem(12));
+}
+
+.auth-meta {
+  display: grid;
+  justify-items: end;
+  gap: rem(4);
+}
+
+.auth-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: rem(4) rem(10);
+  border-radius: rem(999);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: $color-text-primary;
+  font-size: rem(11);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.auth-email {
+  max-width: rem(360);
+  color: $color-text-secondary;
+  font-size: rem(13);
+  text-align: right;
+}
+
+.btn {
+  @include center(row, rem(8));
+  @include apple-transition((background-color, border-color, transform, box-shadow));
+  min-height: rem(46);
+  padding: rem(12) rem(16);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: rem(999);
+  cursor: pointer;
+  color: $color-text-primary;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.09);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  color: #050505;
+  background: linear-gradient(135deg, #ffffff 0%, #8bdcff 46%, #c4b5fd 100%);
+  box-shadow: 0 12px 32px rgba(90, 200, 250, 0.24);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.auth-btn {
+  white-space: nowrap;
+}
+
+.glass-content {
+  display: grid;
+  gap: rem(20);
+  padding: clamp(rem(16), 4vw, rem(28));
+
+  @include mq('lg') {
+    grid-template-columns: 1.05fr 0.95fr;
+    align-items: start;
+  }
+}
+
+.hero-copy {
+  text-align: left;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(8);
+  padding: rem(6) rem(12);
+  border-radius: rem(999);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: $color-text-secondary;
+  font-size: rem(11);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: rem(8);
+  height: rem(8);
+  border-radius: 50%;
+  background: linear-gradient(135deg, $color-accent-set-rest, #8bdcff);
+  box-shadow: 0 0 rem(12) rgba(90, 200, 250, 0.85);
+}
+
+.hero-copy h1 {
+  @include apple-type(40, 700, 0.94, -0.05em);
+  margin-top: rem(14);
+
+  @include mq('md') {
+    font-size: clamp(rem(42), 5vw, rem(62));
+  }
+}
+
+.hero-copy p,
+.mini-copy,
+.timer-helper {
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.preview-stack,
+.settings-grid,
+.metrics,
+.routine-selector {
+  display: grid;
+  gap: rem(12);
+}
+
+.settings-grid {
+  margin-top: rem(20);
+
+  @include mq('md') {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.field-card {
+  display: grid;
+  gap: rem(8);
+  padding: rem(14);
+}
+
+.field-label,
+.mini-label,
+.metric-label {
+  color: $color-text-tertiary;
+  font-size: rem(12);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.input-shell {
+  @include center(row, rem(10));
+  justify-content: space-between;
+  padding: rem(10) rem(12);
+  border-radius: rem(16);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: $color-text-primary;
+  font-size: rem(16);
+}
+
+.glass-select {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.glass-input::placeholder {
+  color: $color-text-tertiary;
+}
+
+.glass-input::-webkit-outer-spin-button,
+.glass-input::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.field-suffix {
+  color: $color-text-tertiary;
+  font-size: rem(11);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.preview-card {
+  display: grid;
+  gap: rem(14);
+  padding: rem(18);
+}
+
+.preview-card--muted {
+  background: rgba(24, 24, 27, 0.62);
+}
+
+.settings-summary-card {
+  gap: rem(14);
+}
+
+.settings-total,
+.metric-card,
+.preview-item {
+  border-radius: rem(18);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.settings-total {
+  @include center(row, rem(12));
+  justify-content: space-between;
+  padding: rem(12) rem(14);
+}
+
+.settings-total strong,
+.metric-value {
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+.metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metric-card {
+  padding: rem(14) rem(16);
+}
+
+.metric-value {
+  display: block;
+  margin-top: rem(6);
+  font-size: rem(20);
+}
+
+.preview-list {
+  display: grid;
+  gap: rem(10);
+  list-style: none;
+  padding: 0;
+}
+
+.preview-item {
+  @include center(row, rem(12));
+  justify-content: space-between;
+  padding: rem(11) rem(12);
+  color: $color-text-secondary;
+}
+
+.preview-item strong {
+  color: $color-text-primary;
+}
+
+.settings-start {
+  width: 100%;
+}
+
+.routine-selector__status {
+  margin: 0;
+}
+
+.timer-helper--inline {
+  display: inline-flex;
+  align-items: center;
+}
+
+@include mq('md') {
+  .app-header,
+  .auth-actions {
+    align-items: center;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .app-header,
+  .auth-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .auth-meta {
+    justify-items: start;
+  }
+
+  .auth-email {
+    max-width: none;
+    text-align: left;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}

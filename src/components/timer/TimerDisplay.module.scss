@@ -1,0 +1,195 @@
+@use '../../styles/abstracts' as *;
+
+.timer {
+  position: relative;
+  display: grid;
+  gap: rem(16);
+  padding-bottom: rem(92);
+
+  &__card {
+    position: relative;
+    overflow: visible;
+  }
+
+  &__controls {
+    position: fixed;
+    left: 50%;
+    bottom: max(rem(16), env(safe-area-inset-bottom) + rem(12));
+    z-index: 20;
+    width: min(calc(100vw - rem(24)), rem(430));
+    padding: rem(8);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: rem(8);
+    transform: translateX(-50%);
+    border-radius: rem(24);
+    @include glass-panel(0.88, 28px);
+  }
+
+  &__tap {
+    display: block;
+  }
+
+  &__control {
+    min-height: rem(48);
+    padding-inline: rem(12);
+  }
+
+  &__mute[aria-pressed='true'] {
+    border-color: rgba(90, 200, 250, 0.28);
+    background: rgba(90, 200, 250, 0.14);
+    box-shadow: 0 rem(10) rem(24) rgba(90, 200, 250, 0.18);
+  }
+
+  :global(.timer-visual) {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: rem(340);
+    padding-block: rem(8) rem(12);
+  }
+
+  :global(.phase-chip) {
+    position: absolute;
+    top: rem(4);
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: rem(88);
+    padding: rem(6) rem(12);
+    border-radius: rem(999);
+    background: var(--phase-accent);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--phase-color);
+    font-size: rem(11);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  :global(.timer-halo) {
+    position: absolute;
+    inset: 16%;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--phase-glow) 0%, transparent 70%);
+    filter: blur(rem(18));
+  }
+
+  :global(.timer-svg) {
+    width: min(100%, rem(320));
+    overflow: visible;
+  }
+
+  :global(.timer-track) {
+    stroke: $color-track;
+  }
+
+  :global(.timer-progress) {
+    stroke: var(--phase-color);
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 rem(18) var(--phase-glow));
+  }
+
+  :global(.timer-face) {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    padding: rem(62);
+    text-align: center;
+    font-family: $font-system;
+  }
+
+  :global(.timer-label) {
+    color: $color-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: rem(11);
+  }
+
+  :global(.timer-phase-title) {
+    color: $color-text-primary;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+  }
+
+  :global(.timer-time--xl) {
+    margin-top: rem(6);
+    font-size: clamp(rem(42), 10vw, rem(62));
+    font-weight: 700;
+    line-height: 0.92;
+    letter-spacing: -0.05em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :global(.timer-set) {
+    margin-top: rem(6);
+    color: $color-text-secondary;
+    font-size: rem(14);
+  }
+
+  :global(.timer-set--secondary) {
+    margin-top: rem(2);
+    font-size: rem(12);
+    color: $color-text-tertiary;
+  }
+
+  :global(.timer-total-remaining) {
+    margin-top: rem(10);
+    color: $color-text-primary;
+    font-size: rem(12);
+    opacity: 0.82;
+  }
+
+  :global(.countdown-overlay) {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    font-size: clamp(rem(58), 16vw, rem(90));
+    font-weight: 800;
+    color: var(--phase-color);
+    text-shadow: 0 0 rem(24) var(--phase-glow);
+  }
+
+  :global(.countdown-pulse) {
+    position: absolute;
+    width: 48%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.72);
+    box-shadow: 0 0 rem(24) var(--phase-glow);
+  }
+}
+
+@include mq('md') {
+  .timer {
+    padding-bottom: 0;
+
+    &__controls {
+      position: static;
+      transform: none;
+      width: 100%;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+}
+
+@media (max-width: 35rem) {
+  .timer {
+    :global(.timer-face) {
+      padding: rem(48);
+    }
+
+    &__controls {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}

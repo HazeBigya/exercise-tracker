@@ -1,0 +1,29 @@
+$font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+$font-display: $font-system;
+
+$color-oled: #000000;
+$color-surface: rgba(24, 24, 27, 0.7);
+$color-surface-strong: rgba(18, 18, 20, 0.84);
+$color-surface-soft: rgba(32, 32, 35, 0.68);
+$color-text-primary: rgba(255, 255, 255, 0.96);
+$color-text-secondary: rgba(235, 235, 245, 0.68);
+$color-text-tertiary: rgba(235, 235, 245, 0.42);
+$color-border: rgba(255, 255, 255, 0.1);
+$color-track: #27272a;
+
+$color-accent-work: #ff6b3d;
+$color-accent-rest: #30d158;
+$color-accent-set-rest: #5ac8fa;
+$color-accent-finished: #bf5af2;
+
+$shadow-floating: 0 24px 80px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+$shadow-soft: 0 12px 40px rgba(0, 0, 0, 0.35);
+$radius-squircle: 2rem;
+$ease-apple: cubic-bezier(0.25, 1, 0.5, 1);
+
+$breakpoints: (
+  'sm': 30rem,
+  'md': 48rem,
+  'lg': 64rem,
+  'xl': 80rem,
+);

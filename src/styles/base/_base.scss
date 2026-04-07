@@ -1,0 +1,48 @@
+@use '../abstracts' as *;
+
+:root {
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: $color-oled;
+  color: $color-text-primary;
+  font-family: $font-system;
+}
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+body::before {
+  background:
+    radial-gradient(circle at 16% 16%, rgba(90, 200, 250, 0.18), transparent 0 28%),
+    radial-gradient(circle at 82% 10%, rgba(191, 90, 242, 0.14), transparent 0 26%),
+    radial-gradient(circle at 70% 78%, rgba(255, 107, 61, 0.12), transparent 0 28%);
+  filter: blur(60px);
+  opacity: 0.9;
+}
+
+body::after {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(circle at center, black 35%, transparent 90%);
+  opacity: 0.28;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

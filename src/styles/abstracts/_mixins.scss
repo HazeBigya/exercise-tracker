@@ -1,0 +1,37 @@
+@use 'sass:map';
+@use './functions' as *;
+@use './variables' as *;
+
+@mixin mq($breakpoint) {
+  @media (min-width: map.get($breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+
+@mixin apple-type($size, $weight: 600, $line-height: 1.05, $tracking: -0.04em) {
+  font-family: $font-display;
+  font-size: rem($size);
+  font-weight: $weight;
+  line-height: $line-height;
+  letter-spacing: $tracking;
+}
+
+@mixin center($direction: row, $gap: 0) {
+  display: flex;
+  flex-direction: $direction;
+  align-items: center;
+  justify-content: center;
+  gap: $gap;
+}
+
+@mixin glass-panel($alpha: 0.72, $blur: 24px) {
+  background: rgba(24, 24, 27, $alpha);
+  border: 1px solid $color-border;
+  box-shadow: $shadow-floating;
+  backdrop-filter: blur($blur) saturate(160%);
+  -webkit-backdrop-filter: blur($blur) saturate(160%);
+}
+
+@mixin apple-transition($properties: all, $duration: 0.2s) {
+  transition: $properties $duration $ease-apple;
+}
