@@ -3,7 +3,7 @@ import { ChevronDown, ChevronLeft, Pause, Play, RotateCcw, Volume2, VolumeX } fr
 import { getRandomCoachTip } from '../../constants/coachTips'
 import { PHASES } from '../../constants/workoutConstants'
 import type { TimerHookResult, TimerPhaseKey, TimerStep, WorkoutConfig } from '../../types'
-import { calculateSingleSetDuration, formatSecondsToClock } from '../../utils/timeHelpers'
+import { formatSecondsToClock } from '../../utils/timeHelpers'
 
 interface TimerDisplayProps extends TimerHookResult {
   rounds: WorkoutConfig['rounds']
@@ -121,17 +121,23 @@ function TimerDisplay({
   const [coachTip, setCoachTip] = useState<string>(() => getRandomCoachTip())
   const tone = PHASE_TONES[phaseKey]
 
-  const singleSetDuration = useMemo(
-    () => calculateSingleSetDuration({ exerciseTime, restTime, rounds }),
-    [exerciseTime, restTime, rounds],
-  )
-
   const timelineSteps = useMemo(
     () => sequence.filter((step) => step.key !== PHASES.FINISHED),
     [sequence],
   )
 
   const nextStep = useMemo(() => sequence[phaseIndex + 1] ?? null, [phaseIndex, sequence])
+
+  const elapsedTime = useMemo(() => {
+    const completedDuration = sequence
+      .slice(0, phaseIndex)
+      .reduce((sum, step) => sum + step.duration, 0)
+
+    const currentStepDuration = sequence[phaseIndex]?.duration ?? 0
+    const currentElapsed = Math.max(currentStepDuration - timeLeft, 0)
+
+    return completedDuration + currentElapsed
+  }, [phaseIndex, sequence, timeLeft])
 
   const setsRemaining = useMemo(() => {
     if (phaseKey === PHASES.FINISHED) {
@@ -227,6 +233,9 @@ function TimerDisplay({
             <div className="mt-4 text-6xl font-black tabular-nums tracking-[-0.06em] text-white sm:text-7xl lg:text-8xl">
               {formatSecondsToClock(timeLeft)}
             </div>
+            <p className="mt-2 text-sm font-medium uppercase tracking-[0.24em] text-slate-300/80">
+              Elapsed {formatSecondsToClock(elapsedTime)}
+            </p>
             <p className="mt-3 text-base font-semibold text-white/90 sm:text-lg">
               Round {Math.min(Math.max(currentRound, 1), rounds)} / {rounds} • Set {Math.min(Math.max(currentSet, 1), totalSets)} / {totalSets}
             </p>
@@ -308,10 +317,6 @@ function TimerDisplay({
                 <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
                   <p className="text-[10px] uppercase tracking-[0.24em] text-slate-300/75">Rest Time</p>
                   <p className="mt-2 text-lg font-semibold text-white">{formatSecondsToClock(restTime)}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 sm:col-span-2">
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-300/75">Single Set Duration</p>
-                  <p className="mt-2 text-lg font-semibold text-white">{formatSecondsToClock(singleSetDuration)}</p>
                 </div>
               </div>
 

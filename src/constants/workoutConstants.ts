@@ -3,6 +3,7 @@ import type { TimerPhase, TimerPhaseKey, WorkoutConfig } from '../types'
 export const APP_VIEWS = {
   SETTINGS: 'settings',
   TIMER: 'timer',
+  STATS: 'stats',
 } as const
 
 export const PHASES = {

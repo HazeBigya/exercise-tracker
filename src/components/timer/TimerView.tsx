@@ -1,16 +1,19 @@
 import { memo, useCallback, useEffect, useRef } from 'react'
+import type { Session } from '@supabase/supabase-js'
 import useTimer from '../../hooks/useTimer'
 import type { WorkoutConfig } from '../../types'
 import TimerDisplay from './TimerDisplay'
 
 interface TimerViewProps {
   config: WorkoutConfig
+  routineName?: string
   startKey: number
+  session: Session | null
   onBack: () => void
 }
 
-function TimerView({ config, startKey, onBack }: TimerViewProps) {
-  const timer = useTimer(config)
+function TimerView({ config, routineName, startKey, session, onBack }: TimerViewProps) {
+  const timer = useTimer(config, session?.user.id, routineName)
   const playRef = useRef(timer.play)
   const resetRef = useRef(timer.reset)
 

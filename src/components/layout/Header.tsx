@@ -27,8 +27,8 @@ function Header({ session, authLoading, authMessage, onSignIn, onSignOut }: Head
             </div>
           </div>
           <div className="brand-copy">
-            <p className="brand-kicker">HIIT Interval Training</p>
-            <h2 className="brand-title">Train in guest mode or sync with Google.</h2>
+            <p className="brand-kicker">Exercise &amp; Weight Loss Tracker</p>
+            <h2 className="brand-title">Track activity, burn calories, and stay on pace with your goals.</h2>
           </div>
         </div>
 

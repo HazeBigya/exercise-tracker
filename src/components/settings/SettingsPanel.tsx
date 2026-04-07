@@ -66,7 +66,7 @@ interface SettingsPanelProps {
   session: Session | null
   onSettingChange: (name: keyof WorkoutConfig, value: number) => void
   onLoadSettings: (config: WorkoutConfig) => void
-  onStart: (config: WorkoutConfig) => void
+  onStart: (config: WorkoutConfig, routineName?: string) => void
 }
 
 function SettingsPanel({
@@ -81,7 +81,7 @@ function SettingsPanel({
   const [savedRoutines, setSavedRoutines] = useState<Routine[]>([])
   const [selectedRoutineId, setSelectedRoutineId] = useState<string>('')
   const [statusMessage, setStatusMessage] = useState<string>(
-    session ? 'Your saved routines will appear here.' : 'Sign in with Google to save workouts to the cloud.',
+    session ? 'Your saved plans will appear here.' : 'Sign in with Google to save exercise plans to the cloud.',
   )
   const [isSaving, setIsSaving] = useState<boolean>(false)
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
@@ -95,7 +95,7 @@ function SettingsPanel({
     }
 
     if (savedRoutines.length > 0) {
-      return 'Load saved workout'
+      return 'Load saved plan'
     }
 
     return 'No saved workouts yet'
@@ -108,7 +108,7 @@ function SettingsPanel({
       if (!session || !supabase) {
         setSavedRoutines([])
         setSelectedRoutineId('')
-        setStatusMessage('Sign in with Google to save workouts to the cloud.')
+        setStatusMessage('Sign in with Google to save exercise plans to the cloud.')
         return
       }
 
@@ -135,8 +135,8 @@ function SettingsPanel({
       setSavedRoutines(routines)
       setStatusMessage(
         routines.length > 0
-          ? 'Select a saved workout from My Library or save your current setup.'
-          : 'No saved workouts yet — save your first one to the cloud.',
+          ? 'Select a saved plan from My Library or save your current calorie-burning setup.'
+          : 'No saved plans yet — save your first exercise plan to the cloud.',
       )
     }
 
@@ -158,11 +158,11 @@ function SettingsPanel({
 
   const handleSaveRoutine = useCallback(async () => {
     if (!session || !supabase) {
-      setStatusMessage('Sign in with Google to save workouts to the cloud.')
+      setStatusMessage('Sign in with Google to save exercise plans to the cloud.')
       return
     }
 
-    const nextName = routineName.trim() || `Workout ${new Date().toLocaleDateString()}`
+    const nextName = routineName.trim() || `Exercise Plan ${new Date().toLocaleDateString()}`
     const normalizedSettings = normalizeWorkoutConfig(settings)
     const payload = {
       user_id: session.user.id,
@@ -201,7 +201,7 @@ function SettingsPanel({
     setSavedRoutines((current) => [savedRoutine, ...current.filter((routine) => routine.id !== savedRoutine.id)])
     setSelectedRoutineId(savedRoutine.id)
     setRoutineName(savedRoutine.name)
-    setStatusMessage(`✅ Saved “${savedRoutine.name}” to your cloud library.`)
+    setStatusMessage(`✅ Saved plan “${savedRoutine.name}” to your library.`)
   }, [routineName, session, settings])
 
   const handleLoadRoutine = useCallback(
@@ -218,18 +218,18 @@ function SettingsPanel({
       const normalizedRoutine = normalizeWorkoutConfig(nextRoutine)
       onLoadSettings(normalizedRoutine)
       setRoutineName(nextRoutine.name)
-      setStatusMessage(`Loaded “${nextRoutine.name}”.`)
+      setStatusMessage(`Loaded plan “${nextRoutine.name}”.`)
     },
     [onLoadSettings, savedRoutines],
   )
 
   const handleUpdateRoutine = useCallback(async () => {
     if (!session || !supabase || !selectedRoutineId) {
-      setStatusMessage('Choose a saved routine from My Library to update it.')
+      setStatusMessage('Choose a saved plan from My Library to update it.')
       return
     }
 
-    const nextName = routineName.trim() || `Workout ${new Date().toLocaleDateString()}`
+    const nextName = routineName.trim() || `Exercise Plan ${new Date().toLocaleDateString()}`
     const normalizedSettings = normalizeWorkoutConfig(settings)
     const payload = {
       name: nextName,
@@ -270,12 +270,12 @@ function SettingsPanel({
       current.map((routine) => (routine.id === updatedRoutine.id ? updatedRoutine : routine)),
     )
     setRoutineName(updatedRoutine.name)
-    setStatusMessage(`✏️ Updated “${updatedRoutine.name}”.`)
+    setStatusMessage(`✏️ Updated plan “${updatedRoutine.name}”.`)
   }, [routineName, selectedRoutineId, session, settings])
 
   const handleDeleteRoutine = useCallback(async () => {
     if (!session || !supabase || !selectedRoutineId) {
-      setStatusMessage('Choose a saved routine from My Library to delete it.')
+      setStatusMessage('Choose a saved plan from My Library to delete it.')
       return
     }
 
@@ -300,7 +300,7 @@ function SettingsPanel({
     setSelectedRoutineId('')
     setRoutineName('')
     setStatusMessage(
-      routineToDelete ? `🗑️ Deleted “${routineToDelete.name}”.` : 'Saved routine deleted.',
+      routineToDelete ? `🗑️ Deleted plan “${routineToDelete.name}”.` : 'Saved plan deleted.',
     )
   }, [savedRoutines, selectedRoutineId, session])
 
@@ -310,13 +310,16 @@ function SettingsPanel({
         <div className="flex h-full flex-col space-y-4">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-200">
             <span className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(125,211,252,0.9)]" />
-            Workout settings
+            Exercise planner
           </div>
 
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
-              Configure Your Workout Intervals
+              Build Your Exercise &amp; Weight Loss Plan
             </h2>
+            <p className="mt-2 max-w-2xl text-sm text-slate-300/80">
+              Customize focused intervals, track active minutes, and stay consistent with your calorie-burning goals.
+            </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -347,7 +350,7 @@ function SettingsPanel({
           <div className="flex h-full flex-col rounded-[28px] border border-white/10 bg-white/5 p-4 backdrop-blur-md md:p-4">
             <div>
               <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-300">
-                Total workout time
+                Estimated activity time
               </p>
               <div className="mt-1 text-4xl font-black tabular-nums tracking-tighter text-white md:text-5xl">
                 {formatSecondsToClock(totalDuration)}
@@ -391,7 +394,7 @@ function SettingsPanel({
             <div className="mt-3 space-y-2.5">
               <label className="block">
                 <span className="mb-1.5 block text-[10px] font-medium uppercase tracking-[0.2em] text-slate-300">
-                  Routine Name
+                  Plan Name
                 </span>
                 <input
                   type="text"
@@ -410,7 +413,7 @@ function SettingsPanel({
                   className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-semibold text-white backdrop-blur-md transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Save size={16} />
-                  {isSaving && !selectedRoutineId ? 'Saving…' : 'Save to Cloud'}
+                  {isSaving && !selectedRoutineId ? 'Saving…' : 'Save Plan'}
                 </button>
 
                 <button
@@ -436,7 +439,7 @@ function SettingsPanel({
 
               <label className="block">
                 <span className="mb-1.5 block text-[10px] font-medium uppercase tracking-[0.2em] text-slate-300">
-                  My Library
+                  Saved Plans
                 </span>
                 <div className="relative">
                   <select
@@ -474,11 +477,11 @@ function SettingsPanel({
               onClick={() => {
                 unlockAudio()
                 playDingDing()
-                onStart(settings)
+                onStart(settings, routineName.trim() || 'Custom Exercise Session')
               }}
               className="mt-5 flex w-full items-center justify-center rounded-full bg-gradient-to-r from-blue-500 via-cyan-500 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(59,130,246,0.35)] transition hover:scale-[1.01]"
             >
-              Start Workout
+              Start Session
             </button>
           </div>
         </div>

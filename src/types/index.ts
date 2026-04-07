@@ -1,4 +1,4 @@
-export type AppView = 'settings' | 'timer'
+export type AppView = 'settings' | 'timer' | 'stats'
 
 export type TimerPhase = 'Warmup' | 'Exercise' | 'Rest' | 'Set Rest' | 'Cooldown' | 'Finished'
 export type TimerPhaseKey = 'warmup' | 'exercise' | 'rest' | 'set-rest' | 'cooldown' | 'finished'
@@ -37,6 +37,29 @@ export interface Routine extends WorkoutConfig {
   created_at?: string | null
 }
 
+export type WorkoutCategory = 'HIIT' | 'Weights' | 'Running' | 'Walking' | 'Yoga' | 'Other'
+
+export interface WorkoutLog {
+  id: string
+  user_id: string
+  routine_name?: string | null
+  category?: WorkoutCategory | string | null
+  exercise_duration_seconds: number
+  total_duration_seconds: number
+  rounds_completed?: number | null
+  sets_completed?: number | null
+  is_manual?: boolean | null
+  created_at?: string | null
+}
+
+export interface WeightLog {
+  id: string
+  user_id: string
+  weight: number
+  logged_date: string
+  created_at?: string | null
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -47,6 +70,22 @@ export interface Database {
           created_at?: string | null
         }
         Update: Partial<Routine>
+        Relationships: []
+      }
+      workout_logs: {
+        Row: WorkoutLog
+        Insert: Omit<WorkoutLog, 'id'> & {
+          id?: string
+        }
+        Update: Partial<WorkoutLog>
+        Relationships: []
+      }
+      weight_logs: {
+        Row: WeightLog
+        Insert: Omit<WeightLog, 'id'> & {
+          id?: string
+        }
+        Update: Partial<WeightLog>
         Relationships: []
       }
     }
