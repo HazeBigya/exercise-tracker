@@ -305,30 +305,27 @@ function SettingsPanel({
   }, [savedRoutines, selectedRoutineId, session])
 
   return (
-    <section className="mx-auto w-full max-w-5xl rounded-[32px] border border-white/10 bg-gradient-to-br from-slate-900/70 to-slate-950/60 px-4 py-5 text-white shadow-[0_24px_80px_rgba(15,23,42,0.35)] backdrop-blur-md md:px-6 md:py-6">
-      <div className="grid items-stretch gap-6 lg:grid-cols-[1.08fr_0.92fr]">
-        <div className="flex h-full flex-col space-y-5">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-200">
+    <section className="mx-auto w-full max-w-5xl rounded-[28px] border border-white/10 bg-gradient-to-br from-slate-900/70 to-slate-950/60 px-3 py-4 text-white shadow-[0_24px_80px_rgba(15,23,42,0.35)] backdrop-blur-md md:px-5 md:py-5">
+      <div className="grid items-stretch gap-4 lg:grid-cols-[1.04fr_0.96fr]">
+        <div className="flex h-full flex-col space-y-4">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-200">
             <span className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(125,211,252,0.9)]" />
             Workout settings
           </div>
 
-          <div className="space-y-3">
-            <h1 className="text-5xl font-black tracking-tight text-white md:text-6xl">
-              Shape every interval before the countdown begins.
-            </h1>
-            <p className="max-w-2xl text-sm leading-7 text-white/60 md:text-base">
-              Configure warmup, exercise, rest, set rest, total sets, and cooldown time in one clean glass layout.
-            </p>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+              Configure Your Workout Intervals
+            </h2>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {SETTINGS_FIELDS.map((field) => (
               <label
                 key={field.name}
-                className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md"
+                className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md"
               >
-                <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.2em] text-slate-300">
+                <span className="mb-1.5 block text-[10px] font-medium uppercase tracking-[0.18em] text-slate-300">
                   {field.label}
                 </span>
                 <input
@@ -339,78 +336,61 @@ function SettingsPanel({
                   name={field.name}
                   value={settings[field.name]}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-lg font-semibold text-white outline-none transition placeholder:text-slate-400 focus:border-cyan-300/50 focus:bg-white/10"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-base font-semibold text-white outline-none transition placeholder:text-slate-400 focus:border-cyan-300/50 focus:bg-white/10"
                 />
               </label>
             ))}
           </div>
         </div>
 
-        <div className="flex h-full flex-col space-y-4">
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-4 backdrop-blur-md md:p-5">
+        <div className="flex h-full flex-col">
+          <div className="flex h-full flex-col rounded-[28px] border border-white/10 bg-white/5 p-4 backdrop-blur-md md:p-4">
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-slate-300">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-300">
                 Total workout time
               </p>
-              <div className="mt-2 text-4xl font-black tabular-nums tracking-tighter text-white">
+              <div className="mt-1 text-4xl font-black tabular-nums tracking-tighter text-white md:text-5xl">
                 {formatSecondsToClock(totalDuration)}
               </div>
             </div>
 
-            <div className="mt-4 space-y-3 rounded-2xl border border-white/10 bg-slate-950/30 p-4 text-sm text-slate-200">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-300/80">Warmup Time (secs) • Cooldown Time (secs)</span>
-                <strong className="tabular-nums text-white">
-                  {settings.warmupTime}s • {settings.cooldownTime}s
-                </strong>
+            <div className="mt-3 rounded-2xl border border-white/10 bg-slate-950/30 p-3 text-xs text-slate-200">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-300/80">Warmup / Cooldown (secs)</span>
+                  <strong className="tabular-nums text-white">
+                    {settings.warmupTime}s • {settings.cooldownTime}s
+                  </strong>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-300/80">Exercise / Rest (secs)</span>
+                  <strong className="tabular-nums text-white">
+                    {settings.exerciseTime}s / {settings.restTime}s
+                  </strong>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-300/80">Rounds / Sets</span>
+                  <strong className="tabular-nums text-white">
+                    {settings.rounds} • {settings.totalSets}
+                  </strong>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-300/80">Single Set Duration</span>
+                  <strong className="tabular-nums text-white">
+                    {formatSecondsToClock(singleSetDuration)}
+                  </strong>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-300/80">Set Rest (secs)</span>
+                  <strong className="tabular-nums text-white">{settings.setRest}s</strong>
+                </div>
               </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-300/80">Exercise Time (secs) • Rest Time (secs)</span>
-                <strong className="tabular-nums text-white">
-                  {settings.exerciseTime}s / {settings.restTime}s
-                </strong>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-300/80">Rounds • Sets</span>
-                <strong className="tabular-nums text-white">
-                  {settings.rounds} • {settings.totalSets}
-                </strong>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-300/80">Single Set Duration</span>
-                <strong className="tabular-nums text-white">
-                  {formatSecondsToClock(singleSetDuration)}
-                </strong>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-300/80">Set Rest (secs)</span>
-                <strong className="tabular-nums text-white">{settings.setRest}s</strong>
-              </div>
+
             </div>
 
-            <div className="mt-4 rounded-[24px] border border-white/10 bg-white/5 p-4 backdrop-blur-md">
-              <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-slate-300">
-                Session Tips
-              </p>
-              <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-200">
-                <li className="flex gap-2">
-                  <span className="mt-2 h-1.5 w-1.5 rounded-full bg-cyan-300" />
-                  <span>Set Rest provides a distinct recovery period between full series of rounds.</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-2 h-1.5 w-1.5 rounded-full bg-cyan-300" />
-                  <span>Modify any setting to see dynamic updates to your Total Time.</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-2 h-1.5 w-1.5 rounded-full bg-cyan-300" />
-                  <span>Save your unique configuration for future quick access.</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="mt-4 space-y-3">
+            <div className="mt-3 space-y-2.5">
               <label className="block">
-                <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.2em] text-slate-300">
+                <span className="mb-1.5 block text-[10px] font-medium uppercase tracking-[0.2em] text-slate-300">
                   Routine Name
                 </span>
                 <input
@@ -418,16 +398,16 @@ function SettingsPanel({
                   value={routineName}
                   onChange={(event) => setRoutineName(event.target.value)}
                   placeholder="Morning intervals"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm font-medium text-white outline-none backdrop-blur-md transition placeholder:text-slate-400 focus:border-cyan-300/50 focus:bg-white/10"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-medium text-white outline-none backdrop-blur-md transition placeholder:text-slate-400 focus:border-cyan-300/50 focus:bg-white/10"
                 />
               </label>
 
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-2 sm:grid-cols-3">
                 <button
                   type="button"
                   onClick={handleSaveRoutine}
                   disabled={!session || isSaving || isDeleting}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-semibold text-white backdrop-blur-md transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Save size={16} />
                   {isSaving && !selectedRoutineId ? 'Saving…' : 'Save to Cloud'}
@@ -437,7 +417,7 @@ function SettingsPanel({
                   type="button"
                   onClick={handleUpdateRoutine}
                   disabled={!session || !selectedRoutineId || isSaving || isDeleting}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-200/20 bg-amber-500/10 px-4 py-3 text-sm font-semibold text-amber-50 backdrop-blur-md transition hover:bg-amber-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-200/20 bg-amber-500/10 px-3 py-2.5 text-xs font-semibold text-amber-50 backdrop-blur-md transition hover:bg-amber-500/15 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Pencil size={16} />
                   {isSaving && selectedRoutineId ? 'Updating…' : 'Update'}
@@ -447,7 +427,7 @@ function SettingsPanel({
                   type="button"
                   onClick={handleDeleteRoutine}
                   disabled={!session || !selectedRoutineId || isDeleting || isSaving}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-50 backdrop-blur-md transition hover:bg-rose-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200/20 bg-rose-500/10 px-3 py-2.5 text-xs font-semibold text-rose-50 backdrop-blur-md transition hover:bg-rose-500/15 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Trash2 size={16} />
                   {isDeleting ? 'Deleting…' : 'Delete'}
@@ -455,7 +435,7 @@ function SettingsPanel({
               </div>
 
               <label className="block">
-                <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.2em] text-slate-300">
+                <span className="mb-1.5 block text-[10px] font-medium uppercase tracking-[0.2em] text-slate-300">
                   My Library
                 </span>
                 <div className="relative">
@@ -463,7 +443,7 @@ function SettingsPanel({
                     value={selectedRoutineId}
                     onChange={handleLoadRoutine}
                     disabled={!session || isLoadingRoutines || savedRoutines.length === 0}
-                    className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-3 py-3 pr-10 text-sm font-medium text-white outline-none backdrop-blur-md transition focus:border-cyan-300/50 focus:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 pr-10 text-sm font-medium text-white outline-none backdrop-blur-md transition focus:border-cyan-300/50 focus:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <option value="">{libraryPlaceholder}</option>
                     {savedRoutines.map((routine) => (
@@ -479,7 +459,7 @@ function SettingsPanel({
                 </div>
               </label>
 
-              <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200 backdrop-blur-md">
+              <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-200 backdrop-blur-md">
                 <div className="flex items-center gap-2">
                   <Cloud size={14} className="text-cyan-300" />
                   <span className={statusMessage.includes('✅') ? 'text-emerald-300' : 'text-slate-200'}>
@@ -496,19 +476,10 @@ function SettingsPanel({
                 playDingDing()
                 onStart(settings)
               }}
-              className="mt-4 flex w-full items-center justify-center rounded-full bg-gradient-to-r from-blue-500 via-cyan-500 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(59,130,246,0.35)] transition hover:scale-[1.01]"
+              className="mt-5 flex w-full items-center justify-center rounded-full bg-gradient-to-r from-blue-500 via-cyan-500 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(59,130,246,0.35)] transition hover:scale-[1.01]"
             >
               Start Workout
             </button>
-          </div>
-
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-4 text-sm leading-6 text-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.22)] backdrop-blur-md">
-            <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.2em] text-slate-300">
-              Time formula
-            </p>
-            <p>
-              Warmup + (((Exercise + Rest) × Rounds - Rest + SetRest) × TotalSets - SetRest) + Cooldown
-            </p>
           </div>
         </div>
       </div>

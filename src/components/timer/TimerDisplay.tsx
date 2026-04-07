@@ -117,7 +117,7 @@ function TimerDisplay({
   skip,
   onBack,
 }: TimerDisplayProps) {
-  const [showDetails, setShowDetails] = useState(false)
+  const [showDetails, setShowDetails] = useState(true)
   const [coachTip, setCoachTip] = useState<string>(() => getRandomCoachTip())
   const tone = PHASE_TONES[phaseKey]
 
