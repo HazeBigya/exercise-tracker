@@ -27,7 +27,7 @@ function Header({ session, authLoading, authMessage, onSignIn, onSignOut }: Head
             </div>
           </div>
           <div className="brand-copy">
-            <p className="brand-kicker">Excercise Tracker</p>
+            <p className="brand-kicker">Exercise Tracker</p>
             <h2 className="brand-title">Track activity, burn calories, and stay on pace with your goals.</h2>
           </div>
         </div>

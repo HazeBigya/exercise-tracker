@@ -1,21 +1,24 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
+  Bike,
   CalendarDays,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  CircleDot,
+  Circle,
   Dumbbell,
   Flame,
   Footprints,
+  Heart,
   NotebookPen,
   Pencil,
   Scale,
   Sparkles,
+  Target,
   Trophy,
   Waves,
   X,
@@ -76,7 +79,22 @@ interface HeatmapMonthLabel {
 
 const HEATMAP_ROW_LABELS = ['Sun', '', 'Tue', '', 'Thu', '', 'Sat'] as const
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
-const CATEGORY_OPTIONS: WorkoutCategory[] = ['HIIT', 'Weights', 'Running', 'Walking', 'Yoga', 'Other']
+const CATEGORY_OPTIONS: WorkoutCategory[] = [
+  'HIIT',
+  'Weights',
+  'Bodyweight',
+  'Running',
+  'Walking',
+  'Cycling',
+  'Swimming',
+  'Rowing',
+  'Yoga',
+  'Pilates',
+  'Boxing',
+  'Hiking',
+  'Sports',
+  'Other',
+]
 const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   day: 'numeric',
@@ -130,48 +148,127 @@ function formatMinutes(seconds: number): string {
 function normalizeCategoryName(category?: string | null, isManual?: boolean | null): WorkoutCategory {
   const value = category?.trim().toLowerCase() ?? ''
 
-  if (value.includes('weight') || value.includes('strength')) {
+  if (!value && isManual) {
+    return 'Other'
+  }
+
+  if (!value) {
+    return 'Other'
+  }
+
+  const exactMatch = CATEGORY_OPTIONS.find((option) => option.toLowerCase() === value)
+  if (exactMatch) {
+    return exactMatch
+  }
+
+  if (value.includes('hiit') || value.includes('interval')) {
+    return 'HIIT'
+  }
+
+  if (value.includes('weight') || value.includes('strength') || value.includes('lift')) {
     return 'Weights'
   }
 
-  if (value.includes('run') || value.includes('cardio')) {
-    return 'Running'
+  if (value.includes('bodyweight') || value.includes('calisthenic') || value.includes('push-up') || value.includes('pull-up')) {
+    return 'Bodyweight'
+  }
+
+  if (value.includes('hike') || value.includes('trail')) {
+    return 'Hiking'
   }
 
   if (value.includes('walk') || value.includes('step')) {
     return 'Walking'
   }
 
-  if (value.includes('yoga')) {
+  if (value.includes('run') || value.includes('cardio') || value.includes('jog') || value.includes('sprint')) {
+    return 'Running'
+  }
+
+  if (value.includes('cycle') || value.includes('bike') || value.includes('spin')) {
+    return 'Cycling'
+  }
+
+  if (value.includes('swim') || value.includes('pool')) {
+    return 'Swimming'
+  }
+
+  if (value.includes('row') || value.includes('erg')) {
+    return 'Rowing'
+  }
+
+  if (value.includes('yoga') || value.includes('stretch') || value.includes('mobility')) {
     return 'Yoga'
   }
 
-  if (value.includes('hiit')) {
-    return 'HIIT'
+  if (value.includes('pilates') || value.includes('reformer')) {
+    return 'Pilates'
   }
 
-  if (isManual && !value) {
-    return 'Other'
+  if (value.includes('box') || value.includes('kickbox') || value.includes('bag')) {
+    return 'Boxing'
+  }
+
+  if (
+    value.includes('sport') ||
+    value.includes('soccer') ||
+    value.includes('football') ||
+    value.includes('basketball') ||
+    value.includes('tennis') ||
+    value.includes('pickleball')
+  ) {
+    return 'Sports'
   }
 
   return 'Other'
 }
 
-function getCategoryIcon(category: WorkoutCategory): LucideIcon {
-  switch (category) {
+function getCategoryIcon(category: string): ReactNode {
+  const normalizedCategory = normalizeCategoryName(category)
+
+  let Icon: LucideIcon = Circle
+
+  switch (normalizedCategory) {
     case 'HIIT':
-      return Flame
+      Icon = Flame
+      break
     case 'Weights':
-      return Dumbbell
+      Icon = Dumbbell
+      break
+    case 'Bodyweight':
+      Icon = Activity
+      break
     case 'Running':
-      return Activity
     case 'Walking':
-      return Footprints
+    case 'Hiking':
+      Icon = Footprints
+      break
+    case 'Cycling':
+      Icon = Bike
+      break
+    case 'Swimming':
+    case 'Rowing':
+      Icon = Waves
+      break
     case 'Yoga':
-      return Waves
+    case 'Pilates':
+      Icon = Heart
+      break
+    case 'Boxing':
+      Icon = Target
+      break
+    case 'Sports':
+      Icon = Trophy
+      break
     default:
-      return CircleDot
+      Icon = Circle
   }
+
+  return (
+    <span className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cyan-400">
+      <Icon size={18} />
+    </span>
+  )
 }
 
 function getHeatmapTone(totalMinutes: number): string {
@@ -645,6 +742,7 @@ function StatsPanel({ session }: StatsPanelProps) {
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
+              aria-label="Open the log workout form"
               onClick={() => {
                 setEditingLogId(null)
                 setManualForm(createInitialManualForm())
@@ -659,6 +757,7 @@ function StatsPanel({ session }: StatsPanelProps) {
 
             <button
               type="button"
+              aria-label="Open the log weight form"
               onClick={() => {
                 setWeightForm(createInitialWeightForm())
                 setWeightFeedback(null)
@@ -672,15 +771,18 @@ function StatsPanel({ session }: StatsPanelProps) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/5 bg-[#151923] p-6">
+        <section aria-labelledby="activity-heatmap-heading" className="rounded-2xl border border-white/5 bg-[#151923] p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.25em] text-white/50">Activity</p>
+              <h2 id="activity-heatmap-heading" className="text-xs uppercase tracking-[0.25em] text-white/50">
+                Activity
+              </h2>
               <p className="mt-1 text-sm text-white/40">Calendar year contribution view</p>
             </div>
 
             <div className="relative inline-flex items-center">
               <select
+                aria-label="Select activity year"
                 value={selectedYear}
                 onChange={(event) => setSelectedYear(Number(event.target.value))}
                 className="appearance-none cursor-pointer border-none bg-transparent pr-8 text-2xl font-bold text-white outline-none focus:ring-0"
@@ -731,6 +833,8 @@ function StatsPanel({ session }: StatsPanelProps) {
                       day ? (
                         <div
                           key={day.dateKey}
+                          role="img"
+                          aria-label={`Workout activity on ${day.label}: ${day.totalMinutes} minutes`}
                           className={`h-3 w-3 rounded-full ${day.tone}`}
                           title={`${day.label}: ${day.totalMinutes} mins${
                             (heatmapTooltipByDate.get(day.dateKey) ?? []).length > 0
@@ -753,9 +857,14 @@ function StatsPanel({ session }: StatsPanelProps) {
               </div>
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <section aria-labelledby="summary-stats-heading" className="space-y-4">
+          <h2 id="summary-stats-heading" className="sr-only">
+            Workout summary statistics
+          </h2>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="rounded-2xl border border-white/5 bg-[#151923] p-6">
             <div className="flex items-center gap-3">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
@@ -793,7 +902,7 @@ function StatsPanel({ session }: StatsPanelProps) {
                     return null
                   }
 
-                  const Icon = getCategoryIcon(category)
+                  const categoryIcon = getCategoryIcon(category)
 
                   return (
                     <div
@@ -801,9 +910,7 @@ function StatsPanel({ session }: StatsPanelProps) {
                       className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
-                          <Icon size={14} />
-                        </span>
+                        {categoryIcon}
                         <span className="text-sm font-medium text-white/80">{category}</span>
                       </div>
                       <span className="text-sm font-semibold text-white">{formatMinutes(log.total_duration_seconds)}</span>
@@ -819,12 +926,14 @@ function StatsPanel({ session }: StatsPanelProps) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/5 bg-[#151923] p-6">
+        <section aria-labelledby="weight-trend-heading" className="rounded-2xl border border-white/5 bg-[#151923] p-6">
           <div className="flex items-center gap-3">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
               <Scale size={16} />
             </span>
-            <p className="text-xs uppercase tracking-[0.22em] text-white/50">Weight Trend</p>
+            <h2 id="weight-trend-heading" className="text-xs uppercase tracking-[0.22em] text-white/50">
+              Weight Trend
+            </h2>
           </div>
 
           {isLoadingWeights ? (
@@ -867,10 +976,13 @@ function StatsPanel({ session }: StatsPanelProps) {
               </ResponsiveContainer>
             </div>
           )}
-        </div>
+        </section>
+      </section>
 
-        <div className="rounded-2xl border border-white/5 bg-[#151923] p-6">
-          <p className="text-xs uppercase tracking-[0.25em] text-white/50">Recent History</p>
+      <section aria-labelledby="recent-history-heading" className="rounded-2xl border border-white/5 bg-[#151923] p-6">
+        <h2 id="recent-history-heading" className="text-xs uppercase tracking-[0.25em] text-white/50">
+          Recent History
+        </h2>
 
           {isLoading ? (
             <p className="mt-4 text-sm text-white/50">Loading recent workouts…</p>
@@ -883,7 +995,7 @@ function StatsPanel({ session }: StatsPanelProps) {
               <ul className="mt-4 space-y-3">
                 {recentLogs.map((log) => {
                   const category = normalizeCategoryName(log.category, log.is_manual)
-                  const Icon = getCategoryIcon(category)
+                  const categoryIcon = getCategoryIcon(log.category ?? category)
                   const date = getLogDate(log)
 
                   return (
@@ -892,9 +1004,7 @@ function StatsPanel({ session }: StatsPanelProps) {
                       className="flex flex-col gap-3 rounded-xl border border-white/5 bg-white/[0.03] p-4 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
-                          <Icon size={16} />
-                        </span>
+                        {categoryIcon}
 
                         <div>
                           <p className="text-sm font-semibold text-white">{log.routine_name?.trim() || 'Workout Session'}</p>
@@ -909,6 +1019,7 @@ function StatsPanel({ session }: StatsPanelProps) {
                         {log.is_manual ? (
                           <button
                             type="button"
+                            aria-label={`Edit manual workout ${log.routine_name?.trim() || 'Workout Session'}`}
                             onClick={() => handleEditManualLog(log)}
                             className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10"
                           >
@@ -926,6 +1037,7 @@ function StatsPanel({ session }: StatsPanelProps) {
               <div className="mt-4 flex justify-end">
                 <button
                   type="button"
+                  aria-label="Open the full workout calendar"
                   onClick={handleOpenCalendar}
                   className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
                 >
@@ -934,14 +1046,15 @@ function StatsPanel({ session }: StatsPanelProps) {
               </div>
             </>
           )}
-        </div>
       </section>
+    </section>
 
       {isManualFormOpen ? (
         <div className={MODAL_BACKDROP_CLASS}>
-          <div className={MODAL_CARD_CLASS}>
+          <div className={MODAL_CARD_CLASS} role="dialog" aria-modal="true" aria-labelledby="manual-workout-modal-title">
             <button
               type="button"
+              aria-label="Close workout form"
               onClick={() => {
                 setIsManualFormOpen(false)
                 setEditingLogId(null)
@@ -955,14 +1068,17 @@ function StatsPanel({ session }: StatsPanelProps) {
 
             <div className={MODAL_LEFT_PANEL_CLASS}>
               <div>
-                <h3 className={MODAL_TITLE_CLASS}>{editingLogId ? 'Edit Workout' : 'Log Workout'}</h3>
+                <h3 id="manual-workout-modal-title" className={MODAL_TITLE_CLASS}>
+                  {editingLogId ? 'Edit Workout' : 'Log Workout'}
+                </h3>
                 <p className={MODAL_SUBTITLE_CLASS}>Add a workout to keep your fitness journal complete.</p>
               </div>
 
-              <form onSubmit={handleManualActivitySubmit}>
-                <label className="mb-5 block">
+              <form onSubmit={handleManualActivitySubmit} aria-labelledby="manual-workout-modal-title">
+                <label htmlFor="manual-workout-name" className="mb-5 block">
                   <span className={MODAL_LABEL_CLASS}>Workout Name</span>
                   <input
+                    id="manual-workout-name"
                     type="text"
                     value={manualForm.activityName}
                     onChange={(event) => handleManualFieldChange('activityName', event.target.value)}
@@ -971,9 +1087,10 @@ function StatsPanel({ session }: StatsPanelProps) {
                   />
                 </label>
 
-                <label className="mb-5 block">
+                <label htmlFor="manual-workout-category" className="mb-5 block">
                   <span className={MODAL_LABEL_CLASS}>Category</span>
                   <select
+                    id="manual-workout-category"
                     value={manualForm.category}
                     onChange={(event) => handleManualFieldChange('category', event.target.value)}
                     className={`${MODAL_INPUT_CLASS} appearance-none`}
@@ -986,9 +1103,10 @@ function StatsPanel({ session }: StatsPanelProps) {
                   </select>
                 </label>
 
-                <label className="mb-5 block">
+                <label htmlFor="manual-workout-duration" className="mb-5 block">
                   <span className={MODAL_LABEL_CLASS}>Duration (Minutes)</span>
                   <input
+                    id="manual-workout-duration"
                     type="number"
                     min="1"
                     value={manualForm.durationMinutes}
@@ -997,9 +1115,10 @@ function StatsPanel({ session }: StatsPanelProps) {
                   />
                 </label>
 
-                <label className="mb-5 block">
+                <label htmlFor="manual-workout-date" className="mb-5 block">
                   <span className={MODAL_LABEL_CLASS}>Date</span>
                   <input
+                    id="manual-workout-date"
                     type="date"
                     value={manualForm.date}
                     onChange={(event) => handleManualFieldChange('date', event.target.value)}
@@ -1011,7 +1130,12 @@ function StatsPanel({ session }: StatsPanelProps) {
                   {manualFeedback ?? 'Add workouts from outside the app so your journal stays complete.'}
                 </p>
 
-                <button type="submit" disabled={isSavingManual} className={MODAL_SAVE_BUTTON_CLASS}>
+                <button
+                  type="submit"
+                  aria-label={editingLogId ? 'Update workout entry' : 'Save workout entry'}
+                  disabled={isSavingManual}
+                  className={MODAL_SAVE_BUTTON_CLASS}
+                >
                   <CalendarDays size={18} />
                   {isSavingManual ? 'Saving…' : editingLogId ? 'Update Workout' : 'Save Workout'}
                 </button>
@@ -1020,12 +1144,7 @@ function StatsPanel({ session }: StatsPanelProps) {
 
             <div className={MODAL_RIGHT_PANEL_CLASS}>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/45">Preview</p>
-              <div className="mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-300">
-                {(() => {
-                  const Icon = workoutPreviewIcon
-                  return <Icon size={28} />
-                })()}
-              </div>
+              <div className="mt-6">{workoutPreviewIcon}</div>
               <p className="mt-5 text-xl font-semibold text-white">
                 Adding {manualForm.durationMinutes || '0'} mins to your journal.
               </p>
@@ -1040,9 +1159,10 @@ function StatsPanel({ session }: StatsPanelProps) {
 
       {isWeightModalOpen ? (
         <div className={MODAL_BACKDROP_CLASS}>
-          <div className={MODAL_CARD_CLASS}>
+          <div className={MODAL_CARD_CLASS} role="dialog" aria-modal="true" aria-labelledby="weight-log-modal-title">
             <button
               type="button"
+              aria-label="Close weight log form"
               onClick={() => {
                 setIsWeightModalOpen(false)
                 setWeightFeedback(null)
@@ -1055,14 +1175,17 @@ function StatsPanel({ session }: StatsPanelProps) {
 
             <div className={MODAL_LEFT_PANEL_CLASS}>
               <div>
-                <h3 className={MODAL_TITLE_CLASS}>Log Weight</h3>
+                <h3 id="weight-log-modal-title" className={MODAL_TITLE_CLASS}>
+                  Log Weight
+                </h3>
                 <p className={MODAL_SUBTITLE_CLASS}>Track your weight over time and visualize your progress.</p>
               </div>
 
-              <form onSubmit={handleSaveWeight}>
-                <label className="mb-5 block">
+              <form onSubmit={handleSaveWeight} aria-labelledby="weight-log-modal-title">
+                <label htmlFor="weight-log-value" className="mb-5 block">
                   <span className={MODAL_LABEL_CLASS}>Weight (kg)</span>
                   <input
+                    id="weight-log-value"
                     type="number"
                     step="0.1"
                     min="1"
@@ -1073,9 +1196,10 @@ function StatsPanel({ session }: StatsPanelProps) {
                   />
                 </label>
 
-                <label className="mb-5 block">
+                <label htmlFor="weight-log-date" className="mb-5 block">
                   <span className={MODAL_LABEL_CLASS}>Date</span>
                   <input
+                    id="weight-log-date"
                     type="date"
                     value={weightForm.loggedDate}
                     onChange={(event) => handleWeightFieldChange('loggedDate', event.target.value)}
@@ -1087,7 +1211,12 @@ function StatsPanel({ session }: StatsPanelProps) {
                   {weightFeedback ?? 'Add a weigh-in to unlock your progress chart.'}
                 </p>
 
-                <button type="submit" disabled={isSavingWeight} className={MODAL_SAVE_BUTTON_CLASS}>
+                <button
+                  type="submit"
+                  aria-label="Save weight entry"
+                  disabled={isSavingWeight}
+                  className={MODAL_SAVE_BUTTON_CLASS}
+                >
                   <Scale size={18} />
                   {isSavingWeight ? 'Saving…' : 'Save Weight'}
                 </button>
@@ -1109,15 +1238,23 @@ function StatsPanel({ session }: StatsPanelProps) {
 
       {isCalendarOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-2xl border border-white/10 bg-[#151923] p-6 shadow-2xl">
+          <div
+            className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-2xl border border-white/10 bg-[#151923] p-6 shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="calendar-modal-title"
+          >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-xl font-bold text-white">Full Workout Calendar</h3>
+                <h3 id="calendar-modal-title" className="text-xl font-bold text-white">
+                  Full Workout Calendar
+                </h3>
                 <p className="text-sm text-white/50">Click a day to review every session logged on that date.</p>
               </div>
 
               <button
                 type="button"
+                aria-label="Close full workout calendar"
                 onClick={() => setIsCalendarOpen(false)}
                 className="rounded-full border border-white/10 bg-white/5 p-2 text-white transition hover:bg-white/10"
               >
@@ -1130,6 +1267,7 @@ function StatsPanel({ session }: StatsPanelProps) {
                 <div className="mb-4 flex items-center justify-between">
                   <button
                     type="button"
+                    aria-label="View previous month in workout calendar"
                     onClick={() => setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))}
                     className="rounded-full border border-white/10 bg-white/5 p-2 text-white transition hover:bg-white/10"
                   >
@@ -1142,6 +1280,7 @@ function StatsPanel({ session }: StatsPanelProps) {
 
                   <button
                     type="button"
+                    aria-label="View next month in workout calendar"
                     onClick={() => setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))}
                     className="rounded-full border border-white/10 bg-white/5 p-2 text-white transition hover:bg-white/10"
                   >
@@ -1163,6 +1302,7 @@ function StatsPanel({ session }: StatsPanelProps) {
                       <button
                         key={day.dateKey}
                         type="button"
+                        aria-label={`View workouts for ${DATE_FORMATTER.format(day.date)}: ${day.totalMinutes} minutes logged`}
                         title={`${DATE_FORMATTER.format(day.date)}: ${day.totalMinutes} mins`}
                         onClick={() => setSelectedDateKey(day.dateKey)}
                         className={`relative min-h-[64px] rounded-xl border px-2 py-2 text-left transition ${
@@ -1190,14 +1330,12 @@ function StatsPanel({ session }: StatsPanelProps) {
                   <ul className="mt-4 space-y-3">
                     {selectedDateLogs.map((log) => {
                       const category = normalizeCategoryName(log.category, log.is_manual)
-                      const Icon = getCategoryIcon(category)
+                      const categoryIcon = getCategoryIcon(log.category ?? category)
 
                       return (
                         <li key={log.id} className="rounded-xl border border-white/5 bg-[#0d1117] p-3">
                           <div className="flex items-center gap-3">
-                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
-                              <Icon size={15} />
-                            </span>
+                            {categoryIcon}
                             <div>
                               <p className="text-sm font-semibold text-white">{log.routine_name?.trim() || 'Workout Session'}</p>
                               <p className="text-xs text-white/50">

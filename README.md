@@ -1,4 +1,4 @@
-# excercise-tracker
+# exercise-tracker
 
 A React + Vite workout and weight logging app for tracking exercise sessions, progress, and fitness goals.
 

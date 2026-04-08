@@ -29,6 +29,8 @@ function createAudio(source: string, volume: number): HTMLAudioElement | null {
 }
 
 let sharedAudioBank: AudioBank | null = null
+const AUDIO_MUTED_KEY = 'exercise-tracker-muted'
+const LEGACY_AUDIO_MUTED_KEY = 'excercise-tracker-muted'
 
 function getAudioBank(): AudioBank {
   if (sharedAudioBank) {
@@ -49,14 +51,18 @@ function useAudioCues(): AudioCueHookResult {
       return false
     }
 
-    return window.localStorage.getItem('excercise-tracker-muted') === '1'
+    return (
+      window.localStorage.getItem(AUDIO_MUTED_KEY) === '1'
+      || window.localStorage.getItem(LEGACY_AUDIO_MUTED_KEY) === '1'
+    )
   })
 
   const { dingAudio, beeperAudio } = useMemo(() => getAudioBank(), [])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem('excercise-tracker-muted', isMuted ? '1' : '0')
+      window.localStorage.setItem(AUDIO_MUTED_KEY, isMuted ? '1' : '0')
+      window.localStorage.removeItem(LEGACY_AUDIO_MUTED_KEY)
     }
 
     for (const audio of [dingAudio, beeperAudio]) {

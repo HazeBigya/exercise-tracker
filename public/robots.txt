@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://excercise-tracker.bigya.com.np/sitemap.xml
+Host: https://exercise-tracker.bigya.com.np
+Sitemap: https://exercise-tracker.bigya.com.np/sitemap.xml
