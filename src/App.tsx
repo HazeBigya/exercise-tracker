@@ -1,14 +1,15 @@
 import { AnimatePresence, motion as Motion } from 'framer-motion'
 import { LogIn, LogOut } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import SettingsPanel from './components/settings/SettingsPanel'
-import StatsPanel from './components/stats/StatsPanel'
-import TimerView from './components/timer/TimerView'
 import { APP_VIEWS, DEFAULT_WORKOUT_CONFIG } from './constants/workoutConstants'
 import useAuth from './hooks/useAuth'
 import type { AppView, WorkoutConfig } from './types'
 import { normalizeWorkoutConfig } from './utils/timeHelpers'
+
+const SettingsPanel = lazy(() => import('./components/settings/SettingsPanel'))
+const StatsPanel = lazy(() => import('./components/stats/StatsPanel'))
+const TimerView = lazy(() => import('./components/timer/TimerView'))
 
 const settingsTransition = {
   type: 'spring',
@@ -22,6 +23,14 @@ const timerTransition = {
 } as const
 
 const SITE_URL = 'https://exercise-tracker.bigya.com.np/'
+
+function LoadingPanel({ label }: { label: string }) {
+  return (
+    <div className="rounded-2xl border border-white/5 bg-[#151923] px-6 py-10 text-center text-sm text-white/60">
+      {label}
+    </div>
+  )
+}
 
 function App() {
   const [view, setView] = useState<AppView>(APP_VIEWS.SETTINGS)
@@ -170,70 +179,84 @@ function App() {
 
           <main id="main-content" className="mt-8">
             <Motion.section id="app-view-panel" layout transition={{ layout: settingsTransition }}>
-              <AnimatePresence mode="wait" initial={false}>
-                {isLoggedIn && view === APP_VIEWS.STATS ? (
-                  <Motion.section
-                    key="stats-view"
-                    aria-labelledby="stats-dashboard-heading"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 12 }}
-                    transition={settingsTransition}
-                  >
-                    <h2 id="stats-dashboard-heading" className="sr-only">
-                      Exercise dashboard and workout history
-                    </h2>
-                    <StatsPanel session={session} />
-                  </Motion.section>
-                ) : view === APP_VIEWS.TIMER ? (
-                  <Motion.section
-                    key="timer-view"
-                    aria-labelledby="timer-view-heading"
-                    className="overflow-hidden rounded-2xl border border-white/5 bg-[#151923]"
-                    initial={{ opacity: 0, y: 18, scale: 0.985 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.985 }}
-                    transition={timerTransition}
-                  >
-                    <div className="border-b border-white/5 px-6 py-5">
-                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/50">HIIT &amp; Interval Tool</p>
-                      <h2 id="timer-view-heading" className="mt-2 text-2xl font-bold text-white">
-                        Structured intervals for focused training
+              <Suspense
+                fallback={
+                  <LoadingPanel
+                    label={
+                      isLoggedIn && view === APP_VIEWS.STATS
+                        ? 'Loading dashboard…'
+                        : view === APP_VIEWS.TIMER
+                          ? 'Loading timer…'
+                          : 'Loading workout settings…'
+                    }
+                  />
+                }
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  {isLoggedIn && view === APP_VIEWS.STATS ? (
+                    <Motion.section
+                      key="stats-view"
+                      aria-labelledby="stats-dashboard-heading"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 12 }}
+                      transition={settingsTransition}
+                    >
+                      <h2 id="stats-dashboard-heading" className="sr-only">
+                        Exercise dashboard and workout history
                       </h2>
-                      <p className="mt-1 text-sm text-white/50">
-                        Use the timer to power cardio bursts, recovery intervals, and calorie-burning sessions.
-                      </p>
-                    </div>
-                    <TimerView
-                      config={workoutConfig}
-                      routineName={activeRoutineName}
-                      startKey={startKey}
-                      session={session}
-                      onBack={handleBack}
-                    />
-                  </Motion.section>
-                ) : (
-                  <Motion.section
-                    key="settings-view"
-                    aria-labelledby="settings-view-heading"
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 12 }}
-                    transition={settingsTransition}
-                  >
-                    <h2 id="settings-view-heading" className="sr-only">
-                      Workout timer settings
-                    </h2>
-                    <SettingsPanel
-                      settings={workoutConfig}
-                      session={session}
-                      onSettingChange={handleSettingChange}
-                      onLoadSettings={handleLoadSettings}
-                      onStart={handleStart}
-                    />
-                  </Motion.section>
-                )}
-              </AnimatePresence>
+                      <StatsPanel session={session} />
+                    </Motion.section>
+                  ) : view === APP_VIEWS.TIMER ? (
+                    <Motion.section
+                      key="timer-view"
+                      aria-labelledby="timer-view-heading"
+                      className="overflow-hidden rounded-2xl border border-white/5 bg-[#151923]"
+                      initial={{ opacity: 0, y: 18, scale: 0.985 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.985 }}
+                      transition={timerTransition}
+                    >
+                      <div className="border-b border-white/5 px-6 py-5">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/50">HIIT &amp; Interval Tool</p>
+                        <h2 id="timer-view-heading" className="mt-2 text-2xl font-bold text-white">
+                          Structured intervals for focused training
+                        </h2>
+                        <p className="mt-1 text-sm text-white/50">
+                          Use the timer to power cardio bursts, recovery intervals, and calorie-burning sessions.
+                        </p>
+                      </div>
+                      <TimerView
+                        config={workoutConfig}
+                        routineName={activeRoutineName}
+                        startKey={startKey}
+                        session={session}
+                        onBack={handleBack}
+                      />
+                    </Motion.section>
+                  ) : (
+                    <Motion.section
+                      key="settings-view"
+                      aria-labelledby="settings-view-heading"
+                      initial={{ opacity: 0, y: 24 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 12 }}
+                      transition={settingsTransition}
+                    >
+                      <h2 id="settings-view-heading" className="sr-only">
+                        Workout timer settings
+                      </h2>
+                      <SettingsPanel
+                        settings={workoutConfig}
+                        session={session}
+                        onSettingChange={handleSettingChange}
+                        onLoadSettings={handleLoadSettings}
+                        onStart={handleStart}
+                      />
+                    </Motion.section>
+                  )}
+                </AnimatePresence>
+              </Suspense>
             </Motion.section>
           </main>
         </div>

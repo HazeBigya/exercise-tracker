@@ -15,4 +15,37 @@ export default defineConfig({
       robots: [{ userAgent: '*', allow: '/' }],
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            return undefined
+          }
+
+          if (id.includes('recharts')) {
+            return 'charts'
+          }
+
+          if (id.includes('framer-motion')) {
+            return 'motion'
+          }
+
+          if (id.includes('@supabase/supabase-js')) {
+            return 'supabase'
+          }
+
+          if (id.includes('lucide-react')) {
+            return 'icons'
+          }
+
+          if (id.includes('react')) {
+            return 'react-vendor'
+          }
+
+          return 'vendor'
+        },
+      },
+    },
+  },
 })

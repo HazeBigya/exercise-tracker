@@ -35,6 +35,7 @@ import {
 import useAnalytics from '../../hooks/useAnalytics'
 import { supabase } from '../../lib/supabase'
 import type { WeightLog, WorkoutCategory, WorkoutLog } from '../../types'
+import { calculateStreaks } from '../../utils/streaks'
 
 interface StatsPanelProps {
   session: Session | null
@@ -119,6 +120,112 @@ const MODAL_INPUT_CLASS =
   'w-full rounded-xl border border-white/5 bg-[#151923] px-4 py-3 text-white outline-none transition-all focus:border-cyan-500/50'
 const MODAL_SAVE_BUTTON_CLASS =
   'mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60'
+const MAX_ACTIVITY_NAME_LENGTH = 50
+const MAX_WORKOUT_MINUTES = 1440
+const MAX_WEIGHT_KG = 1000
+const SAFE_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
+const SAFE_WEIGHT_PATTERN = /^\d{1,4}(?:\.\d{1,2})?$/
+
+function sanitizeActivityName(value: string): string {
+  return value.replace(/[<>&"'`]/g, '').replace(/\s+/g, ' ').slice(0, MAX_ACTIVITY_NAME_LENGTH)
+}
+
+function sanitizeDurationInput(value: string): string {
+  return value.replace(/\D/g, '').slice(0, 4)
+}
+
+function sanitizeWeightInput(value: string): string {
+  const normalizedValue = value.replace(/[^\d.]/g, '')
+  const [wholePart = '', ...decimalParts] = normalizedValue.split('.')
+  const safeWholePart = wholePart.slice(0, 4)
+
+  if (decimalParts.length === 0) {
+    return safeWholePart
+  }
+
+  return `${safeWholePart}.${decimalParts.join('').slice(0, 2)}`
+}
+
+function validateManualWorkoutForm(form: ManualFormState): { sanitizedName: string; durationMinutes: number; error: string | null } {
+  const sanitizedName = sanitizeActivityName(form.activityName).trim()
+  const durationText = sanitizeDurationInput(form.durationMinutes)
+
+  if (!sanitizedName) {
+    return {
+      sanitizedName: '',
+      durationMinutes: 0,
+      error: 'Please enter a workout name using 1–50 plain-text characters.',
+    }
+  }
+
+  if (!CATEGORY_OPTIONS.includes(form.category)) {
+    return {
+      sanitizedName,
+      durationMinutes: 0,
+      error: 'Please select a valid workout category.',
+    }
+  }
+
+  if (!/^\d+$/.test(durationText)) {
+    return {
+      sanitizedName,
+      durationMinutes: 0,
+      error: 'Duration must be a whole number between 1 and 1440 minutes.',
+    }
+  }
+
+  const durationMinutes = Number.parseInt(durationText, 10)
+
+  if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > MAX_WORKOUT_MINUTES) {
+    return {
+      sanitizedName,
+      durationMinutes: 0,
+      error: 'Duration must be a whole number between 1 and 1440 minutes.',
+    }
+  }
+
+  if (!SAFE_DATE_PATTERN.test(form.date) || Number.isNaN(new Date(`${form.date}T12:00:00`).getTime())) {
+    return {
+      sanitizedName,
+      durationMinutes,
+      error: 'Please choose a valid workout date.',
+    }
+  }
+
+  return { sanitizedName, durationMinutes, error: null }
+}
+
+function validateWeightForm(form: WeightFormState): { normalizedWeight: string; nextWeight: number; error: string | null } {
+  const normalizedWeight = sanitizeWeightInput(form.weight)
+
+  if (!SAFE_WEIGHT_PATTERN.test(normalizedWeight)) {
+    return {
+      normalizedWeight,
+      nextWeight: 0,
+      error: 'Weight must be a positive number up to 1000 kg with at most 2 decimal places.',
+    }
+  }
+
+  const nextWeight = Number.parseFloat(normalizedWeight)
+
+  if (!Number.isFinite(nextWeight) || nextWeight <= 0 || nextWeight > MAX_WEIGHT_KG) {
+    return {
+      normalizedWeight,
+      nextWeight: 0,
+      error: 'Weight must be a positive number up to 1000 kg with at most 2 decimal places.',
+    }
+  }
+
+  if (!SAFE_DATE_PATTERN.test(form.loggedDate) || Number.isNaN(new Date(`${form.loggedDate}T12:00:00`).getTime())) {
+    return {
+      normalizedWeight,
+      nextWeight,
+      error: 'Please choose a valid date for your weight entry.',
+    }
+  }
+
+  return { normalizedWeight, nextWeight, error: null }
+}
 
 function getLocalDateKey(date: Date): string {
   const year = date.getFullYear()
@@ -492,6 +599,11 @@ function StatsPanel({ session }: StatsPanelProps) {
     }, 0)
   }, [logs])
 
+  const { currentStreak, bestStreak } = useMemo(
+    () => calculateStreaks(logs.map((log) => log.created_at ?? '')),
+    [logs],
+  )
+
   const personalBestsByCategory = useMemo(() => {
     const bestMap = new Map<WorkoutCategory, WorkoutLog>()
 
@@ -569,16 +681,39 @@ function StatsPanel({ session }: StatsPanelProps) {
   }, [refreshWeightLogs])
 
   const handleManualFieldChange = useCallback((field: keyof ManualFormState, value: string) => {
-    setManualForm((current) => ({
-      ...current,
-      [field]: value,
-    }))
+    setManualForm((current) => {
+      if (field === 'activityName') {
+        return {
+          ...current,
+          activityName: sanitizeActivityName(value),
+        }
+      }
+
+      if (field === 'durationMinutes') {
+        return {
+          ...current,
+          durationMinutes: sanitizeDurationInput(value),
+        }
+      }
+
+      if (field === 'category') {
+        return {
+          ...current,
+          category: CATEGORY_OPTIONS.includes(value as WorkoutCategory) ? (value as WorkoutCategory) : current.category,
+        }
+      }
+
+      return {
+        ...current,
+        [field]: value,
+      }
+    })
   }, [])
 
   const handleWeightFieldChange = useCallback((field: keyof WeightFormState, value: string) => {
     setWeightForm((current) => ({
       ...current,
-      [field]: value,
+      [field]: field === 'weight' ? sanitizeWeightInput(value) : value,
     }))
   }, [])
 
@@ -591,26 +726,20 @@ function StatsPanel({ session }: StatsPanelProps) {
         return
       }
 
-      const activityName = manualForm.activityName.trim()
-      const durationMinutes = Number.parseInt(manualForm.durationMinutes, 10)
+      const { sanitizedName: activityName, durationMinutes, error: validationError } = validateManualWorkoutForm(manualForm)
 
-      if (!activityName) {
-        setManualFeedback('Please enter an activity name.')
-        return
-      }
-
-      if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) {
-        setManualFeedback('Please enter a valid duration in minutes.')
-        return
-      }
-
-      if (!manualForm.date) {
-        setManualFeedback('Please pick the workout date.')
+      if (validationError) {
+        setManualFeedback(validationError)
         return
       }
 
       setIsSavingManual(true)
       setManualFeedback(null)
+      setManualForm((current) => ({
+        ...current,
+        activityName,
+        durationMinutes: String(durationMinutes),
+      }))
 
       const activityTimestamp = new Date(`${manualForm.date}T12:00:00`).toISOString()
       const durationSeconds = durationMinutes * 60
@@ -656,20 +785,19 @@ function StatsPanel({ session }: StatsPanelProps) {
         return
       }
 
-      const nextWeight = Number.parseFloat(weightForm.weight)
+      const { normalizedWeight, nextWeight, error: validationError } = validateWeightForm(weightForm)
 
-      if (!Number.isFinite(nextWeight) || nextWeight <= 0) {
-        setWeightFeedback('Please enter a valid weight in kg.')
-        return
-      }
-
-      if (!weightForm.loggedDate) {
-        setWeightFeedback('Please choose a date.')
+      if (validationError) {
+        setWeightFeedback(validationError)
         return
       }
 
       setIsSavingWeight(true)
       setWeightFeedback(null)
+      setWeightForm((current) => ({
+        ...current,
+        weight: normalizedWeight,
+      }))
 
       const { error: insertError } = await supabase.from('weight_logs').insert({
         user_id: session.user.id,
@@ -879,12 +1007,14 @@ function StatsPanel({ session }: StatsPanelProps) {
           <div className="rounded-2xl border border-white/5 bg-[#151923] p-6">
             <div className="flex items-center gap-3">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
-                <Activity size={16} />
+                <Flame size={16} />
               </span>
-              <p className="text-xs uppercase tracking-[0.22em] text-white/50">Total Workouts</p>
+              <p className="text-xs uppercase tracking-[0.22em] text-white/50">Streaks</p>
             </div>
-            <div className="mt-4 text-4xl font-bold text-white">{logs.length}</div>
-            <p className="mt-1 text-sm text-white/40">Sessions logged across your tracker.</p>
+            <div className="mt-4 text-4xl font-bold text-white md:text-5xl">
+              🔥 {currentStreak} {currentStreak === 1 ? 'Day' : 'Days'}
+            </div>
+            <p className="mt-1 text-sm text-white/40">Best: {bestStreak} {bestStreak === 1 ? 'Day' : 'Days'}</p>
           </div>
 
           <div className="rounded-2xl border border-white/5 bg-[#151923] p-6">
@@ -1080,6 +1210,8 @@ function StatsPanel({ session }: StatsPanelProps) {
                   <input
                     id="manual-workout-name"
                     type="text"
+                    maxLength={MAX_ACTIVITY_NAME_LENGTH}
+                    autoComplete="off"
                     value={manualForm.activityName}
                     onChange={(event) => handleManualFieldChange('activityName', event.target.value)}
                     placeholder="Evening Walk"
@@ -1109,6 +1241,9 @@ function StatsPanel({ session }: StatsPanelProps) {
                     id="manual-workout-duration"
                     type="number"
                     min="1"
+                    max={MAX_WORKOUT_MINUTES}
+                    step="1"
+                    inputMode="numeric"
                     value={manualForm.durationMinutes}
                     onChange={(event) => handleManualFieldChange('durationMinutes', event.target.value)}
                     className={MODAL_INPUT_CLASS}
@@ -1187,8 +1322,10 @@ function StatsPanel({ session }: StatsPanelProps) {
                   <input
                     id="weight-log-value"
                     type="number"
-                    step="0.1"
-                    min="1"
+                    step="0.01"
+                    min="0.01"
+                    max={MAX_WEIGHT_KG}
+                    inputMode="decimal"
                     value={weightForm.weight}
                     onChange={(event) => handleWeightFieldChange('weight', event.target.value)}
                     placeholder="70.5"
