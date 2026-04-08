@@ -49,14 +49,14 @@ function useAudioCues(): AudioCueHookResult {
       return false
     }
 
-    return window.localStorage.getItem('hiit-timer-muted') === '1'
+    return window.localStorage.getItem('excercise-tracker-muted') === '1'
   })
 
   const { dingAudio, beeperAudio } = useMemo(() => getAudioBank(), [])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem('hiit-timer-muted', isMuted ? '1' : '0')
+      window.localStorage.setItem('excercise-tracker-muted', isMuted ? '1' : '0')
     }
 
     for (const audio of [dingAudio, beeperAudio]) {

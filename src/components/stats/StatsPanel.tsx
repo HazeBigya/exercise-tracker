@@ -100,7 +100,7 @@ const MODAL_LABEL_CLASS = 'mb-2 ml-1 block text-xs font-bold uppercase tracking-
 const MODAL_INPUT_CLASS =
   'w-full rounded-xl border border-white/5 bg-[#151923] px-4 py-3 text-white outline-none transition-all focus:border-cyan-500/50'
 const MODAL_SAVE_BUTTON_CLASS =
-  'mt-4 w-full rounded-xl bg-cyan-600 py-3 font-semibold text-white transition-colors hover:bg-cyan-500'
+  'mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60'
 
 function getLocalDateKey(date: Date): string {
   const year = date.getFullYear()

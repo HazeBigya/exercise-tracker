@@ -1,6 +1,6 @@
-# React + Vite
+# excercise-tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + Vite workout and weight logging app for tracking exercise sessions, progress, and fitness goals.
 
 Currently, two official plugins are available:
 
