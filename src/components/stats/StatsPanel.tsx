@@ -18,6 +18,7 @@ import {
   Pencil,
   Scale,
   Sparkles,
+  Star,
   Target,
   Trophy,
   Waves,
@@ -378,6 +379,55 @@ function getCategoryIcon(category: string): ReactNode {
   )
 }
 
+function getPersonalBestCategoryIcon(category: string): ReactNode {
+  const normalizedCategory = normalizeCategoryName(category)
+
+  let Icon: LucideIcon = Circle
+
+  switch (normalizedCategory) {
+    case 'HIIT':
+      Icon = Flame
+      break
+    case 'Weights':
+      Icon = Dumbbell
+      break
+    case 'Bodyweight':
+      Icon = Activity
+      break
+    case 'Running':
+    case 'Walking':
+    case 'Hiking':
+      Icon = Footprints
+      break
+    case 'Cycling':
+      Icon = Bike
+      break
+    case 'Swimming':
+    case 'Rowing':
+      Icon = Waves
+      break
+    case 'Yoga':
+    case 'Pilates':
+      Icon = Heart
+      break
+    case 'Boxing':
+      Icon = Target
+      break
+    case 'Sports':
+      Icon = Trophy
+      break
+    default:
+      Icon = Circle
+  }
+
+  return (
+    <span className="relative flex h-10 w-10 items-center justify-center rounded-full border border-cyan-400/20 bg-cyan-500/10 text-cyan-300">
+      <Sparkles className="absolute -top-1 -right-1 h-3.5 w-3.5 text-cyan-200" />
+      <Icon size={16} />
+    </span>
+  )
+}
+
 function getHeatmapTone(totalMinutes: number): string {
   if (totalMinutes <= 0) {
     return 'bg-white/5'
@@ -598,6 +648,8 @@ function StatsPanel({ session }: StatsPanelProps) {
       return sum + getActiveSeconds(log)
     }, 0)
   }, [logs])
+
+  const averageWeeklyVolumeMinutes = useMemo(() => Math.round(monthlyVolumeSeconds / 4 / 60), [monthlyVolumeSeconds])
 
   const { currentStreak, bestStreak } = useMemo(
     () => calculateStreaks(logs.map((log) => log.created_at ?? '')),
@@ -992,69 +1044,93 @@ function StatsPanel({ session }: StatsPanelProps) {
             Workout summary statistics
           </h2>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-2xl border border-white/5 bg-[#151923] p-6">
-            <div className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
-                <Sparkles size={16} />
-              </span>
-              <p className="text-xs uppercase tracking-[0.22em] text-white/50">Monthly Volume</p>
-            </div>
-            <div className="mt-4 text-4xl font-bold text-white">{formatMinutes(monthlyVolumeSeconds)}</div>
-            <p className="mt-1 text-sm text-white/40">Active minutes logged this month.</p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-stretch">
+            <article className="flex h-full flex-col rounded-2xl border border-white/5 bg-[#151923] p-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
+                  <Sparkles size={16} />
+                </span>
+                <p className="text-xs uppercase tracking-[0.22em] text-white/50">MONTHLY VOLUME</p>
+              </div>
+              <div className="mt-4 flex-1">
+                <div className="text-4xl font-bold text-white">{formatMinutes(monthlyVolumeSeconds)}</div>
+                <p className="mt-2 text-sm text-white/40">Active minutes logged this month.</p>
+              </div>
+            </article>
+
+            <article className="flex h-full flex-col rounded-2xl border border-white/5 bg-[#151923] p-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
+                  <Activity size={16} />
+                </span>
+                <p className="text-xs uppercase tracking-[0.22em] text-white/50">TOTAL WORKOUTS</p>
+              </div>
+              <div className="mt-4 flex-1">
+                <div className="text-4xl font-bold text-white">{logs.length}</div>
+                <p className="mt-2 text-sm text-white/40">
+                  Current streak: {currentStreak} {currentStreak === 1 ? 'day' : 'days'} · Best: {bestStreak}{' '}
+                  {bestStreak === 1 ? 'day' : 'days'}
+                </p>
+              </div>
+            </article>
+
+            <article className="flex h-full flex-col rounded-2xl border border-white/5 bg-[#151923] p-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
+                  <Star size={16} />
+                </span>
+                <p className="text-xs uppercase tracking-[0.22em] text-white/50">AVERAGE WEEKLY VOLUME</p>
+              </div>
+              <div className="mt-4 flex-1">
+                <div className="text-4xl font-bold text-white">{averageWeeklyVolumeMinutes} min/week</div>
+                <p className="mt-2 text-sm text-white/40">Average workout duration per week</p>
+              </div>
+            </article>
           </div>
 
           <div className="rounded-2xl border border-white/5 bg-[#151923] p-6">
-            <div className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
-                <Flame size={16} />
-              </span>
-              <p className="text-xs uppercase tracking-[0.22em] text-white/50">Streaks</p>
-            </div>
-            <div className="mt-4 text-4xl font-bold text-white md:text-5xl">
-              🔥 {currentStreak} {currentStreak === 1 ? 'Day' : 'Days'}
-            </div>
-            <p className="mt-1 text-sm text-white/40">Best: {bestStreak} {bestStreak === 1 ? 'Day' : 'Days'}</p>
-          </div>
-
-          <div className="rounded-2xl border border-white/5 bg-[#151923] p-6">
-            <div className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
-                <Trophy size={16} />
-              </span>
-              <p className="text-xs uppercase tracking-[0.22em] text-white/50">Personal Bests</p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
+                  <Trophy size={18} />
+                </span>
+                <h3 className="mt-0 text-2xl font-bold text-white">PERSONAL BESTS</h3>
+              </div>
             </div>
 
             {personalBestsByCategory.length > 0 ? (
-              <div className="mt-4 space-y-2.5">
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {personalBestsByCategory.map(({ category, log }) => {
                   if (!log) {
                     return null
                   }
 
-                  const categoryIcon = getCategoryIcon(category)
+                  const categoryIcon = getPersonalBestCategoryIcon(category)
 
                   return (
                     <div
                       key={category}
-                      className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2"
+                      className="flex items-center justify-between gap-3 rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         {categoryIcon}
-                        <span className="text-sm font-medium text-white/80">{category}</span>
+                        <div>
+                          <p className="text-sm font-semibold text-white">{category}</p>
+                          <p className="text-xs text-white/45">Longest session</p>
+                        </div>
                       </div>
-                      <span className="text-sm font-semibold text-white">{formatMinutes(log.total_duration_seconds)}</span>
+                      <span className="text-sm font-semibold text-white">{formatMinutes(getActiveSeconds(log))}</span>
                     </div>
                   )
                 })}
               </div>
             ) : (
-              <div className="mt-4 text-4xl font-bold text-white">0 min</div>
+              <div className="mt-6 text-4xl font-bold text-white">0 min</div>
             )}
 
-            <p className="mt-3 text-sm text-white/40">Best session duration recorded for each workout category.</p>
+            <p className="mt-5 text-sm text-white/40">Best session duration recorded for each workout category.</p>
           </div>
-        </div>
+        </section>
 
         <section aria-labelledby="weight-trend-heading" className="rounded-2xl border border-white/5 bg-[#151923] p-6">
           <div className="flex items-center gap-3">
@@ -1177,7 +1253,6 @@ function StatsPanel({ session }: StatsPanelProps) {
             </>
           )}
       </section>
-    </section>
 
       {isManualFormOpen ? (
         <div className={MODAL_BACKDROP_CLASS}>
