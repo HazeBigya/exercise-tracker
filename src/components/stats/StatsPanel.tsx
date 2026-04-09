@@ -682,6 +682,26 @@ function StatsPanel({ session }: StatsPanelProps) {
 
   const calendarDays = useMemo(() => buildCalendarDays(calendarMonth, activityByDate), [activityByDate, calendarMonth])
   const selectedDateLogs = selectedDateKey ? logsByDate.get(selectedDateKey) ?? [] : []
+  const selectedDateWeightLog = useMemo(() => {
+    if (!selectedDateKey) {
+      return null
+    }
+
+    const matchingWeightLogs = weightLogs.filter((entry) => {
+      if (entry.logged_date === selectedDateKey) {
+        return true
+      }
+
+      if (!entry.created_at) {
+        return false
+      }
+
+      const createdDate = new Date(entry.created_at)
+      return !Number.isNaN(createdDate.getTime()) && getLocalDateKey(createdDate) === selectedDateKey
+    })
+
+    return matchingWeightLogs.length > 0 ? matchingWeightLogs[matchingWeightLogs.length - 1] : null
+  }, [selectedDateKey, weightLogs])
   const workoutPreviewIcon = getCategoryIcon(manualForm.category)
   const workoutPreviewDate = manualForm.date ? DATE_FORMATTER.format(new Date(`${manualForm.date}T12:00:00`)) : 'today'
   const weightPreviewDate = weightForm.loggedDate
@@ -1151,7 +1171,7 @@ function StatsPanel({ session }: StatsPanelProps) {
           ) : (
             <div className="mt-6 h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weightChartData}>
+                <LineChart data={weightChartData} margin={{ top: 20, right: 20, left: -10, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
                   <XAxis
                     dataKey="dateLabel"
@@ -1159,7 +1179,13 @@ function StatsPanel({ session }: StatsPanelProps) {
                     tickLine={false}
                     tick={{ fill: '#ffffff50', fontSize: 12 }}
                   />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#ffffff50', fontSize: 12 }} />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#ffffff50', fontSize: 12 }}
+                    domain={['dataMin - 2', 'dataMax + 2']}
+                    allowDecimals={false}
+                  />
                   <RechartsTooltip
                     contentStyle={{
                       backgroundColor: '#151923',
@@ -1519,9 +1545,9 @@ function StatsPanel({ session }: StatsPanelProps) {
                         onClick={() => setSelectedDateKey(day.dateKey)}
                         className={`relative min-h-[64px] rounded-xl border px-2 py-2 text-left transition ${
                           isSelected
-                            ? 'border-cyan-400/60 bg-cyan-500/10'
+                            ? 'border-cyan-500 bg-cyan-500/20 text-white'
                             : 'border-white/5 bg-white/[0.03] hover:bg-white/5'
-                        } ${day.inCurrentMonth ? 'text-white' : 'text-white/30'}`}
+                        } ${isSelected ? 'text-white' : day.inCurrentMonth ? 'text-white' : 'text-white/30'}`}
                       >
                         <span className="text-sm font-semibold">{day.date.getDate()}</span>
                         {day.hasWorkouts ? <span className="absolute bottom-2 left-2 h-2 w-2 rounded-full bg-cyan-400" /> : null}
@@ -1538,32 +1564,50 @@ function StatsPanel({ session }: StatsPanelProps) {
                     : 'Select a day'}
                 </p>
 
-                {selectedDateKey && selectedDateLogs.length > 0 ? (
-                  <ul className="mt-4 space-y-3">
-                    {selectedDateLogs.map((log) => {
-                      const category = normalizeCategoryName(log.category, log.is_manual)
-                      const categoryIcon = getCategoryIcon(log.category ?? category)
+                <div className="mt-4">
+                  {selectedDateWeightLog ? (
+                    <div className="mb-4 flex items-center gap-3 rounded-xl border border-white/5 bg-[#151923] p-4">
+                      <Scale className="h-5 w-5 text-cyan-400" />
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-white/45">Weight Log</p>
+                        <p className="text-sm font-semibold text-white">Logged Weight: {selectedDateWeightLog.weight} kg</p>
+                      </div>
+                    </div>
+                  ) : null}
 
-                      return (
-                        <li key={log.id} className="rounded-xl border border-white/5 bg-[#0d1117] p-3">
-                          <div className="flex items-center gap-3">
-                            {categoryIcon}
-                            <div>
-                              <p className="text-sm font-semibold text-white">{log.routine_name?.trim() || 'Workout Session'}</p>
-                              <p className="text-xs text-white/50">
-                                {category}
-                                {log.is_manual ? ' · Manual' : ''}
-                              </p>
-                            </div>
-                          </div>
-                          <p className="mt-2 text-sm font-semibold text-cyan-100">{formatMinutes(getActiveSeconds(log))}</p>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                ) : (
-                  <p className="mt-4 text-sm text-white/50">No workouts logged on this day yet.</p>
-                )}
+                  {selectedDateKey ? (
+                    selectedDateLogs.length > 0 ? (
+                      <ul className="space-y-3">
+                        {selectedDateLogs.map((log) => {
+                          const category = normalizeCategoryName(log.category, log.is_manual)
+                          const categoryIcon = getCategoryIcon(log.category ?? category)
+
+                          return (
+                            <li key={log.id} className="rounded-xl border border-white/5 bg-[#0d1117] p-3">
+                              <div className="flex items-center gap-3">
+                                {categoryIcon}
+                                <div>
+                                  <p className="text-sm font-semibold text-white">{log.routine_name?.trim() || 'Workout Session'}</p>
+                                  <p className="text-xs text-white/50">
+                                    {category}
+                                    {log.is_manual ? ' · Manual' : ''}
+                                  </p>
+                                </div>
+                              </div>
+                              <p className="mt-2 text-sm font-semibold text-cyan-100">{formatMinutes(getActiveSeconds(log))}</p>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    ) : selectedDateWeightLog ? (
+                      <p className="text-sm text-white/50">No workouts logged.</p>
+                    ) : (
+                      <p className="text-sm text-white/50">No activity or weight logged on this day.</p>
+                    )
+                  ) : (
+                    <p className="text-sm text-white/50">Select a day to review workouts and weigh-ins.</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
